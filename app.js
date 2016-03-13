@@ -33,35 +33,55 @@ function sendFile(filePath, res) {
 };
 
 server.on('request', function(req, res) {
+    var chunks = [];
 
-    var urlObj = url.parse(req.url);
+    req.on('data', function(chunk) {
+        chunks.push(chunk);
+    });
 
-    if (urlObj.pathname === '/favicon.ico') {
+    req.on('end', function() {
+        var urlObj = url.parse(req.url);
+        if (chunks.length) {
+            bodyStr = (Buffer.concat(chunks)).toString('utf8');
+            if (req.headers['Content-Type'] === 'application/json') {
+                req.body = JSON.parse(bodyStr);
+            } else {
+                req.body = bodyStr;
+            }
+        }
 
-        res404(res);
+        if (urlObj.pathname === '/favicon.ico') {
 
-    } else if (urlObj.pathname === '/') {
+            res404(res);
 
-        sendFile(path.join(__dirname, 'static', 'index.html'), res);
+        } else if (urlObj.pathname === '/') {
 
-    } else {
+            sendFile(path.join(__dirname, 'static', 'index.html'), res);
 
-        var pathObj = path.parse(urlObj.pathname);
-        if (pathObj.ext) {
-            sendFile(path.join(__dirname, 'static', pathObj.base), res);
         } else {
 
-            switch (urlObj.pathname) {
-                case '/aaa':
-                    res.end('aaa');
-                    break;
-                default:
-                    res404(res);
+            var pathObj = path.parse(urlObj.pathname);
+            if (pathObj.ext) {
+                sendFile(path.join(__dirname, 'static', pathObj.base), res);
+            } else {
+
+                switch (urlObj.pathname) {
+                    case '/aaa':
+                        if (req.method.toUpperCase() === 'POST') {
+                            console.dir(req.body);
+                            res.end('aaa');
+                        }
+                        break;
+                    default:
+                        res404(res);
+                }
+
             }
 
         }
+    });
 
-    }
+
 });
 
 server.listen(port, function() {

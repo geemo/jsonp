@@ -8,7 +8,7 @@ function ajax(obj) {
             var async = obj.async || true;
             var jsonp = obj.jsonp || undefined;
             var headers = obj.headers || null;
-            var date = obj.date || undefined;
+            var data = obj.data || undefined;
             var success = obj.success || null;
 
             if (jsonp) {
@@ -41,13 +41,27 @@ function ajax(obj) {
                             xhr.setRequestHeader(key, headers[key]);
                         }
                     }
-
-                    if (date && !headers['Content-Type']) {
-                        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                    }
                 }
 
-                xhr.send(date);
+                if(data){
+
+                    if(data && typeof data === 'object'){
+                        var bodyDate = JSON.stringify(data);
+                        xhr.setRequestHeader('Content-Type', 'application/json');
+                        xhr.setRequestHeader('Content-Length', bodyDate.length);
+                        xhr.send(bodyDate);
+
+                    } else if(typeof data === 'string') {
+                        xhr.setRequestHeader('Content-Type', 'text/plain');
+                        xhr.setRequestHeader('Content-Length', data.length);
+                        xhr.send(data);
+                    } else {
+                        throw new Error('data type error!');
+                    }
+
+                } else {
+                    xhr.send(null);
+                }
 
             }
 
@@ -68,12 +82,22 @@ var btn = document.getElementById('btn');
 btn.onclick = function(e) {
     // ajax({
     //     method: 'GET',
-    //     url: 'http://localhost:3000/?callback=jsonpCallback',
+    //     url: 'http://127.0.0.1:3000/?callback=jsonpCallback',
     //     jsonp: 'jsonpCallback'
     // });
+
+    // ajax({
+    //     method: 'GET',
+    //     url: 'http://127.0.0.1/aaa',
+    //     success: function(statusCode, result){
+    //         alert(statusCode + ': ' + result);
+    //     }
+    // });
+
     ajax({
-        method: 'GET',
-        url: 'http://127.0.0.1/aaa',
+        method: 'POST',
+        url: 'http://127.0.0.1:/aaa',
+        data: {a: 5, b: 6},
         success: function(statusCode, result){
             alert(statusCode + ': ' + result);
         }
